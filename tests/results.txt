@@ -1,0 +1,35 @@
+// ---------------------------------
+// test02-pcjpresult.js
+// ---------------------------------
+// Test failed:
+// expected:
+// The poincut of an aspect was evaluated before jp.finalResult is available 
+// result:
+// <empty array>
+// ---------------------------------
+// test21-modifyingJPData.js
+// ---------------------------------
+// Test failed:
+// expected:
+// no-change adv 
+// result:
+// adv 
+// ---------------------------------
+// testDS08-7simple.js
+// ---------------------------------
+../aspectscript.js:926: InternalError: too much recursion
+// ---------------------------------
+// testParser01.js
+// ---------------------------------
+// Test failed
+// true == 'flex'
+// ---------------------------------
+// testRee16-jpOrder.js
+// ---------------------------------
+// Test failed:
+// expected:
+// 1 
+// result:
+// 1 99 
+
+// Failed 5 of 105 tests.

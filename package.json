@@ -1,0 +1,12 @@
+{
+  "name": "aspectscript",
+  "private": true,
+  "scripts": {
+    "test": "node run-tests.js"
+  },
+  "dependencies": {
+    "acorn": "^8.16.0",
+    "acorn-walk": "^8.3.5",
+    "astring": "^1.9.0"
+  }
+}
