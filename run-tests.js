@@ -5,8 +5,38 @@ const path = require("path");
 const vm = require("vm");
 
 const { transformProgram } = require("./instrument");
+const LAST_FAILS_FILE = path.join(__dirname, "tests", "lastFails.txt");
 
-function listTests(root, filters) {
+function parseArgs(argv) {
+  const filters = [];
+  let failedOnly = false;
+  for (const arg of argv) {
+    if (arg === "-f" || arg === "--failed") {
+      failedOnly = true;
+      continue;
+    }
+    filters.push(arg);
+  }
+  return { failedOnly, filters };
+}
+
+function listTests(root, filters, failedOnly) {
+  if (failedOnly) {
+    if (!fs.existsSync(LAST_FAILS_FILE)) {
+      return [];
+    }
+    const previousFailures = fs.readFileSync(LAST_FAILS_FILE, "utf8")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((name) => /^test.*\.js$/.test(name))
+      .filter((name) => fs.existsSync(path.join(root, name)));
+    if (!filters.length) {
+      return previousFailures;
+    }
+    return previousFailures.filter((name) => filters.some((filter) => name.startsWith(filter)));
+  }
+
   const files = fs.readdirSync(root)
     .filter((name) => /^test.*\.js$/.test(name))
     .sort();
@@ -128,20 +158,38 @@ function runTest(filePath) {
   }
 }
 
+function writeLastFailures(failedNames) {
+  const payload = failedNames.length ? failedNames.join("\n") + "\n" : "";
+  fs.writeFileSync(LAST_FAILS_FILE, payload, "utf8");
+}
+
 function main() {
   const testDir = path.join(__dirname, "tests");
-  const filters = process.argv.slice(2);
-  const tests = listTests(testDir, filters);
+  const { failedOnly, filters } = parseArgs(process.argv.slice(2));
+  const tests = listTests(testDir, filters, failedOnly);
+  if (!tests.length) {
+    if (failedOnly) {
+      process.stdout.write("No failed tests recorded in tests/lastFails.txt.\n");
+    } else {
+      process.stdout.write("No tests matched the provided filters.\n");
+    }
+    return;
+  }
+
+  const failedNames = [];
   let failures = 0;
   for (const name of tests) {
     const filePath = path.join(testDir, name);
     const error = runTest(filePath);
     if (error) {
       failures += 1;
+      failedNames.push(name);
       process.stdout.write(name + "\n");
       process.stdout.write(String(error && error.stack ? error.stack : error) + "\n");
     }
   }
+  writeLastFailures(failedNames);
+  process.stdout.write("Evaluated " + tests.length + " test(s). Failed " + failures + ".\n");
   if (failures) {
     process.exitCode = 1;
   }

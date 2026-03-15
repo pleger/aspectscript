@@ -2,7 +2,9 @@
   "name": "aspectscript",
   "private": true,
   "scripts": {
-    "test": "node run-tests.js"
+    "test": "node run-tests.js",
+    "test:failed": "node run-tests.js --failed",
+    "run:script": "node run-script.js"
   },
   "dependencies": {
     "acorn": "^8.16.0",

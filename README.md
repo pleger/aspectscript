@@ -25,6 +25,18 @@ Run the test suite:
 npm test
 ```
 
+Run only failed tests from the previous run:
+
+```bash
+npm run test:failed
+```
+
+Run any script/example file with AspectScript runtime + instrumentation:
+
+```bash
+npm run run:script -- tests/test-ex.js
+```
+
 Serve the playground locally from `docs/`:
 
 ```bash
@@ -33,6 +45,10 @@ python3 -m http.server 4173
 ```
 
 Then open `http://127.0.0.1:4173`.
+
+## GitHub guide
+
+For a full command-line and GitHub usage guide, see [GITHUB_USAGE.md](./GITHUB_USAGE.md).
 
 ## Current test status
 
