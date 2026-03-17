@@ -4,20 +4,30 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const { transformProgram } = require("./instrument");
+const { transformProgramCached } = require("./transform-cache");
 const LAST_FAILS_FILE = path.join(__dirname, "tests", "lastFails.txt");
 
 function parseArgs(argv) {
   const filters = [];
   let failedOnly = false;
+  let cacheEnabled = true;
+  let showCacheStats = false;
   for (const arg of argv) {
     if (arg === "-f" || arg === "--failed") {
       failedOnly = true;
       continue;
     }
+    if (arg === "--no-cache") {
+      cacheEnabled = false;
+      continue;
+    }
+    if (arg === "--cache-stats") {
+      showCacheStats = true;
+      continue;
+    }
     filters.push(arg);
   }
-  return { failedOnly, filters };
+  return { failedOnly, filters, cacheEnabled, showCacheStats };
 }
 
 function listTests(root, filters, failedOnly) {
@@ -107,11 +117,15 @@ function makeTesting(context) {
   };
 }
 
-function runTest(filePath) {
+function runTest(filePath, options) {
   delete require.cache[require.resolve("./aspectscript")];
   const { createAspectScript } = require("./aspectscript");
   const source = fs.readFileSync(filePath, "utf8");
-  const transformed = transformProgram(stripLoads(source));
+  const transformResult = transformProgramCached(stripLoads(source), {
+    cacheEnabled: options.cacheEnabled,
+    namespace: "tests",
+  });
+  const transformed = transformResult.code;
   const sandbox = {
     console,
     require,
@@ -152,9 +166,9 @@ function runTest(filePath) {
   context.Testing = makeTesting(context);
   try {
     vm.runInContext(transformed, context, { filename: filePath });
-    return null;
+    return { error: null, fromCache: transformResult.fromCache };
   } catch (error) {
-    return error;
+    return { error, fromCache: transformResult.fromCache };
   }
 }
 
@@ -176,7 +190,7 @@ function writeLastFailures(failedNames) {
 
 function main() {
   const testDir = path.join(__dirname, "tests");
-  const { failedOnly, filters } = parseArgs(process.argv.slice(2));
+  const { failedOnly, filters, cacheEnabled, showCacheStats } = parseArgs(process.argv.slice(2));
   const tests = listTests(testDir, filters, failedOnly);
   if (!tests.length) {
     if (failedOnly) {
@@ -189,9 +203,14 @@ function main() {
 
   const failedNames = [];
   let failures = 0;
+  let cacheHits = 0;
   for (const name of tests) {
     const filePath = path.join(testDir, name);
-    const error = runTest(filePath);
+    const result = runTest(filePath, { cacheEnabled });
+    const error = result.error;
+    if (result.fromCache) {
+      cacheHits += 1;
+    }
     if (error) {
       failures += 1;
       failedNames.push(name);
@@ -206,6 +225,9 @@ function main() {
   }
   writeLastFailures(failedNames);
   process.stdout.write("Evaluated " + tests.length + " test(s). Failed " + failures + ".\n");
+  if (showCacheStats) {
+    process.stdout.write("Cache hits: " + cacheHits + "/" + tests.length + ".\n");
+  }
   if (failures) {
     process.exitCode = 1;
   }

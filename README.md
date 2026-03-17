@@ -27,6 +27,12 @@ Run the test suite:
 npm test
 ```
 
+Run with cache statistics:
+
+```bash
+node run-tests.js --cache-stats
+```
+
 Run only failed tests from the previous run:
 
 ```bash
@@ -43,6 +49,19 @@ Run and export execution trace as JSON:
 
 ```bash
 npm run run:script -- tests/test-ex.js --trace-json trace.json
+```
+
+Disable transform cache for a run:
+
+```bash
+npm run run:script -- tests/test-ex.js --no-cache
+node run-tests.js --no-cache
+```
+
+Run paper-aligned conformance examples:
+
+```bash
+npm run test:conformance
 ```
 
 Use the CLI command:
@@ -66,6 +85,7 @@ Then open `http://127.0.0.1:4173`.
 
 For a full command-line and GitHub usage guide, see [GITHUB_USAGE.md](./GITHUB_USAGE.md).
 For practical examples/patterns, see [PATTERNS.md](./PATTERNS.md).
+For package publishing readiness, see [NPM_PUBLISH.md](./NPM_PUBLISH.md).
 
 ## Current test status
 

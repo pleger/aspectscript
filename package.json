@@ -1,5 +1,7 @@
 {
   "name": "aspectscript",
+  "version": "0.1.0",
+  "description": "AspectScript runtime, instrumentation, and CLI tooling",
   "main": "aspectscript.js",
   "types": "index.d.ts",
   "private": true,
@@ -9,8 +11,10 @@
   "scripts": {
     "test": "node run-tests.js",
     "test:failed": "node run-tests.js --failed",
+    "test:conformance": "node run-conformance.js",
     "run:script": "node run-script.js",
-    "cli": "node aspectscript-cli.js"
+    "cli": "node aspectscript-cli.js",
+    "pack:check": "npm_config_cache=/tmp/aspectscript-npm-cache npm pack --dry-run"
   },
   "dependencies": {
     "acorn": "^8.16.0",

@@ -42,6 +42,12 @@ Export join point trace as machine-readable JSON:
 npm run run:script -- tests/test-ex.js --trace-json trace.json
 ```
 
+Disable transform cache:
+
+```bash
+npm run run:script -- tests/test-ex.js --no-cache
+```
+
 ## 3) Use the AspectScript CLI command
 
 You can also use the packaged CLI:
@@ -49,7 +55,9 @@ You can also use the packaged CLI:
 ```bash
 npx aspectscript run tests/test-ex.js
 npx aspectscript run tests/test-ex.js --trace-json trace.json
+npx aspectscript run tests/test-ex.js --no-cache
 npx aspectscript test
+npx aspectscript test --cache-stats
 npx aspectscript test --failed
 ```
 
@@ -67,6 +75,8 @@ Run tests by prefix:
 node run-tests.js testDS
 node run-tests.js testRee
 node run-tests.js test21
+node run-tests.js --cache-stats
+node run-tests.js --no-cache
 ```
 
 ## 5) Run only failed tests
@@ -100,3 +110,12 @@ This helps identify where failures happen in advice/pointcut execution.
 This implementation is based on:
 
 Rodolfo Toledo, Paul Leger, and Eric Tanter. *AspectScript: Expressive Aspects for the Web*. AOSD'10, March 15-19, 2010, Rennes and St. Malo, France. ACM.
+
+## 8) Conformance Suite
+
+Run paper-aligned conformance scenarios:
+
+```bash
+npm run test:conformance
+node run-conformance.js
+```

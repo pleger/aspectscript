@@ -20,13 +20,15 @@ function usage() {
     "AspectScript CLI\n" +
     "\n" +
     "Usage:\n" +
-    "  aspectscript run <file.js> [--trace-json trace.json]\n" +
-    "  aspectscript test [--failed|-f] [testPrefix...]\n" +
+    "  aspectscript run <file.js> [--trace-json trace.json] [--no-cache]\n" +
+    "  aspectscript test [--failed|-f] [--cache-stats] [--no-cache] [testPrefix...]\n" +
     "\n" +
     "Examples:\n" +
     "  aspectscript run tests/test-ex.js\n" +
     "  aspectscript run tests/test-ex.js --trace-json trace.json\n" +
+    "  aspectscript run tests/test-ex.js --no-cache\n" +
     "  aspectscript test\n" +
+    "  aspectscript test --cache-stats\n" +
     "  aspectscript test --failed\n" +
     "  aspectscript test testRee\n"
   );

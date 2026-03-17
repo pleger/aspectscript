@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const { transformProgram } = require("./instrument");
+const { transformProgramCached } = require("./transform-cache");
 const { createAspectScript } = require("./aspectscript");
 
 function stripLoads(source) {
@@ -112,7 +112,10 @@ function createContext() {
 
 function runFile(filePath, options) {
   const source = fs.readFileSync(filePath, "utf8");
-  const transformed = transformProgram(stripLoads(source));
+  const transformed = transformProgramCached(stripLoads(source), {
+    cacheEnabled: options && options.cacheEnabled !== false,
+    namespace: "scripts",
+  }).code;
   const context = createContext();
   if (options && options.traceEnabled) {
     context.AspectScript.tracer.enable();
@@ -124,6 +127,7 @@ function runFile(filePath, options) {
 function parseArgs(argv) {
   let target = null;
   let traceJsonPath = null;
+  let cacheEnabled = true;
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--trace-json") {
@@ -131,17 +135,21 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === "--no-cache") {
+      cacheEnabled = false;
+      continue;
+    }
     if (!target) {
       target = arg;
     }
   }
-  return { target, traceJsonPath };
+  return { target, traceJsonPath, cacheEnabled };
 }
 
 function main() {
-  const { target, traceJsonPath } = parseArgs(process.argv.slice(2));
+  const { target, traceJsonPath, cacheEnabled } = parseArgs(process.argv.slice(2));
   if (!target) {
-    process.stderr.write("Usage: node run-script.js <path/to/file.js> [--trace-json trace.json]\n");
+    process.stderr.write("Usage: node run-script.js <path/to/file.js> [--trace-json trace.json] [--no-cache]\n");
     process.exitCode = 1;
     return;
   }
@@ -164,7 +172,10 @@ function main() {
     process.stdout.write("Trace output: " + traceOut + "\n");
   }
   try {
-    context = runFile(fullPath, { traceEnabled: Boolean(traceJsonPath) });
+    context = runFile(fullPath, {
+      traceEnabled: Boolean(traceJsonPath),
+      cacheEnabled,
+    });
     if (traceJsonPath) {
       const traceOut = path.resolve(process.cwd(), traceJsonPath);
       context.AspectScript.tracer.saveToFile(traceOut, true);
