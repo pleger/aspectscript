@@ -1,5 +1,11 @@
-test02-pcjpresult.js
+test-ctx.js
+test-dd-03.js
+test-ss.js
+test15.js
 test21-modifyingJPData.js
-testDS08-7simple.js
-testParser01.js
+testDS06.js
+testRee01.js
+testRee02.js
+testRee03.js
+testRee04.js
 testRee16-jpOrder.js
