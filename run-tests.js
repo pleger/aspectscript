@@ -158,6 +158,17 @@ function runTest(filePath) {
   }
 }
 
+function summarizeError(error) {
+  const stack = String(error && error.stack ? error.stack : error || "");
+  const lines = stack.split("\n");
+  const message = lines[0] || "Error";
+  const topFrame = lines.find((line) =>
+    /:\d+:\d+\)?$/.test(line) &&
+    !line.includes("run-tests.js") &&
+    !line.includes("node:vm")) || "";
+  return { message, topFrame, stack };
+}
+
 function writeLastFailures(failedNames) {
   const payload = failedNames.length ? failedNames.join("\n") + "\n" : "";
   fs.writeFileSync(LAST_FAILS_FILE, payload, "utf8");
@@ -184,8 +195,13 @@ function main() {
     if (error) {
       failures += 1;
       failedNames.push(name);
+      const details = summarizeError(error);
       process.stdout.write(name + "\n");
-      process.stdout.write(String(error && error.stack ? error.stack : error) + "\n");
+      process.stdout.write("Summary: " + details.message + "\n");
+      if (details.topFrame) {
+        process.stdout.write("Top frame: " + details.topFrame.trim() + "\n");
+      }
+      process.stdout.write(details.stack + "\n");
     }
   }
   writeLastFailures(failedNames);

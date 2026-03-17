@@ -110,17 +110,43 @@ function createContext() {
   return context;
 }
 
-function runFile(filePath) {
+function runFile(filePath, options) {
   const source = fs.readFileSync(filePath, "utf8");
   const transformed = transformProgram(stripLoads(source));
   const context = createContext();
+  if (options && options.traceEnabled) {
+    context.AspectScript.tracer.enable();
+  }
   vm.runInContext(transformed, context, { filename: filePath });
+  return context;
+}
+
+function parseArgs(argv) {
+  let target = null;
+  let traceJsonPath = null;
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === "--trace-json") {
+      traceJsonPath = argv[i + 1] || null;
+      i += 1;
+      continue;
+    }
+    if (!target) {
+      target = arg;
+    }
+  }
+  return { target, traceJsonPath };
 }
 
 function main() {
-  const target = process.argv[2];
+  const { target, traceJsonPath } = parseArgs(process.argv.slice(2));
   if (!target) {
-    process.stderr.write("Usage: node run-script.js <path/to/file.js>\n");
+    process.stderr.write("Usage: node run-script.js <path/to/file.js> [--trace-json trace.json]\n");
+    process.exitCode = 1;
+    return;
+  }
+  if (process.argv.includes("--trace-json") && !traceJsonPath) {
+    process.stderr.write("Missing value for --trace-json\n");
     process.exitCode = 1;
     return;
   }
@@ -132,9 +158,22 @@ function main() {
     return;
   }
 
+  let context = null;
+  if (traceJsonPath) {
+    const traceOut = path.resolve(process.cwd(), traceJsonPath);
+    process.stdout.write("Trace output: " + traceOut + "\n");
+  }
   try {
-    runFile(fullPath);
+    context = runFile(fullPath, { traceEnabled: Boolean(traceJsonPath) });
+    if (traceJsonPath) {
+      const traceOut = path.resolve(process.cwd(), traceJsonPath);
+      context.AspectScript.tracer.saveToFile(traceOut, true);
+    }
   } catch (error) {
+    if (traceJsonPath && context) {
+      const traceOut = path.resolve(process.cwd(), traceJsonPath);
+      context.AspectScript.tracer.saveToFile(traceOut, true);
+    }
     process.stderr.write(String(error && error.stack ? error.stack : error) + "\n");
     process.exitCode = 1;
   }

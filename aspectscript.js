@@ -204,6 +204,34 @@ function createAspectScript(runtimeGlobal = globalThis) {
     return Object.freeze(clone);
   }
 
+  function annotateErrorWithJoinPoint(error, internal) {
+    if (!error || (typeof error !== "object" && typeof error !== "function")) {
+      return error;
+    }
+    if (error.__asAnnotated) {
+      return error;
+    }
+    const jpLabelWithMeta = publicJoinPoint(internal, () => internal.finalResult, state.currentLevel).toString();
+    const receiver = currentFrame() && currentFrame().receiver;
+    const receiverName = receiver && receiver.constructor && receiver.constructor.name
+      ? receiver.constructor.name
+      : (receiver === globalObject ? "global" : typeof receiver);
+    const contextLine = "[AspectScript] join point: " + jpLabelWithMeta +
+      " | level: " + state.currentLevel +
+      " | receiver: " + receiverName;
+    if (typeof error.message === "string" && !error.message.includes(contextLine)) {
+      error.message += "\n" + contextLine;
+    }
+    if (typeof error.stack === "string" && !error.stack.includes(contextLine)) {
+      error.stack += "\n" + contextLine;
+    }
+    Object.defineProperty(error, "__asAnnotated", {
+      value: true,
+      configurable: true,
+    });
+    return error;
+  }
+
   function isSuppressed(aspect) {
     if (aspect.allowReentrance) {
       return false;
@@ -672,13 +700,17 @@ function createAspectScript(runtimeGlobal = globalThis) {
       }
     }
 
-    const result = chain(...(internal.args || []));
-    internal.finalResult = result;
-    internal.value = internal.kind === "get" || internal.kind === "varGet" ? result : internal.value;
-    for (const aspect of afters) {
-      runAfterAdvice(aspect, internal, (...proceedArgs) => executeBase(...(proceedArgs.length ? proceedArgs : (internal.args || []))));
+    try {
+      const result = chain(...(internal.args || []));
+      internal.finalResult = result;
+      internal.value = internal.kind === "get" || internal.kind === "varGet" ? result : internal.value;
+      for (const aspect of afters) {
+        runAfterAdvice(aspect, internal, (...proceedArgs) => executeBase(...(proceedArgs.length ? proceedArgs : (internal.args || []))));
+      }
+      return result;
+    } catch (error) {
+      throw annotateErrorWithJoinPoint(error, internal);
     }
-    return result;
   }
 
   function captureLexicalObjects() {
@@ -1093,6 +1125,16 @@ function createAspectScript(runtimeGlobal = globalThis) {
     },
     dump() {
       return state.traceEntries.slice();
+    },
+    toJSON(pretty) {
+      return JSON.stringify(state.traceEntries, null, pretty ? 2 : 0);
+    },
+    saveToFile(filePath, pretty) {
+      if (typeof require !== "function") {
+        throw new Error("saveToFile is only available in Node.js environments");
+      }
+      const fs = require("fs");
+      fs.writeFileSync(String(filePath), JSON.stringify(state.traceEntries, null, pretty === false ? 0 : 2), "utf8");
     },
   };
 

@@ -36,7 +36,24 @@ Notes:
 - `load(...)` lines are ignored automatically (for compatibility with legacy test files).
 - The runner instruments JavaScript before execution, then runs it in an AspectScript-enabled VM context.
 
-## 3) Run tests from CLI
+Export join point trace as machine-readable JSON:
+
+```bash
+npm run run:script -- tests/test-ex.js --trace-json trace.json
+```
+
+## 3) Use the AspectScript CLI command
+
+You can also use the packaged CLI:
+
+```bash
+npx aspectscript run tests/test-ex.js
+npx aspectscript run tests/test-ex.js --trace-json trace.json
+npx aspectscript test
+npx aspectscript test --failed
+```
+
+## 4) Run tests from CLI
 
 Run all tests:
 
@@ -52,7 +69,7 @@ node run-tests.js testRee
 node run-tests.js test21
 ```
 
-## 4) Run only failed tests
+## 5) Run only failed tests
 
 After a test run, failed tests are written to `tests/lastFails.txt`.
 
@@ -68,7 +85,17 @@ Equivalent direct command:
 node run-tests.js --failed
 ```
 
-## 5) Citation
+## 6) Diagnostics
+
+Runtime errors now include an AspectScript context line, for example:
+
+```text
+[AspectScript] join point: [exec: move] | level: 0 | receiver: Point
+```
+
+This helps identify where failures happen in advice/pointcut execution.
+
+## 7) Citation
 
 This implementation is based on:
 

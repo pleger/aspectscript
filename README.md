@@ -6,6 +6,8 @@ An implementation of the AspectScript extension language for JavaScript, based o
 
 - A runtime and source instrumenter for AspectScript.
 - A Node-based test runner that executes the original `tests/test*.js` suite while ignoring legacy `load(...)` lines.
+- A CLI command (`aspectscript`) for running scripts and tests.
+- TypeScript type definitions (`index.d.ts`).
 - A static playground in `docs/` with:
   - editable examples
   - execution output
@@ -37,6 +39,20 @@ Run any script/example file with AspectScript runtime + instrumentation:
 npm run run:script -- tests/test-ex.js
 ```
 
+Run and export execution trace as JSON:
+
+```bash
+npm run run:script -- tests/test-ex.js --trace-json trace.json
+```
+
+Use the CLI command:
+
+```bash
+npx aspectscript run tests/test-ex.js
+npx aspectscript test
+npx aspectscript test --failed
+```
+
 Serve the playground locally from `docs/`:
 
 ```bash
@@ -49,7 +65,8 @@ Then open `http://127.0.0.1:4173`.
 ## GitHub guide
 
 For a full command-line and GitHub usage guide, see [GITHUB_USAGE.md](./GITHUB_USAGE.md).
+For practical examples/patterns, see [PATTERNS.md](./PATTERNS.md).
 
 ## Current test status
 
-The current implementation passes 94 of 105 legacy tests. The remaining failures are concentrated in advanced scoping and reentrance edge cases.
+The current implementation passes 105 of 105 legacy tests.

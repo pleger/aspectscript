@@ -1,10 +1,16 @@
 {
   "name": "aspectscript",
+  "main": "aspectscript.js",
+  "types": "index.d.ts",
   "private": true,
+  "bin": {
+    "aspectscript": "./aspectscript-cli.js"
+  },
   "scripts": {
     "test": "node run-tests.js",
     "test:failed": "node run-tests.js --failed",
-    "run:script": "node run-script.js"
+    "run:script": "node run-script.js",
+    "cli": "node aspectscript-cli.js"
   },
   "dependencies": {
     "acorn": "^8.16.0",
