@@ -1,6 +1,10 @@
 # AspectScript
 
+[![npm version](https://img.shields.io/npm/v/aspectscript.svg)](https://www.npmjs.com/package/aspectscript)
+
 An implementation of the AspectScript extension language for JavaScript, based on the AOSD 2010 paper "AspectScript: Expressive Aspects for the Web".
+
+NPM package: <https://www.npmjs.com/package/aspectscript>
 
 ## Quick start (npm)
 
